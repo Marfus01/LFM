@@ -5,7 +5,7 @@ import torch.nn as nn
 from models.x_transformer import Encoder, TransformerWrapper
 
 
-class AbstractEncoder(nn.Module):
+class AbstractEncoder(nn.Module):  #抽象类
     def __init__(self):
         super().__init__()
 
@@ -13,7 +13,7 @@ class AbstractEncoder(nn.Module):
         raise NotImplementedError
 
 
-class BERTTokenizer(AbstractEncoder):
+class BERTTokenizer(AbstractEncoder):  #BERT分词器
     """Uses a pretrained BERT tokenizer by huggingface. Vocab size: 30522 (?)"""
 
     def __init__(self, device="cuda", vq_interface=True, max_length=77):
@@ -87,17 +87,19 @@ class BERTEmbedder(AbstractEncoder):
         return self(text)
 
 
-class SpatialRescaler(nn.Module):
+class SpatialRescaler(nn.Module): #分辨率调整和通道映射
     def __init__(self, n_stages=1, method="bilinear", multiplier=0.5, in_channels=3, out_channels=None, bias=False):
         super().__init__()
         self.n_stages = n_stages
         assert self.n_stages >= 0
+        #插值方法
         assert method in ["nearest", "linear", "bilinear", "trilinear", "bicubic", "area"]
         self.multiplier = multiplier
         self.interpolator = partial(torch.nn.functional.interpolate, mode=method)
         self.remap_output = out_channels is not None
         if self.remap_output:
             print(f"Spatial Rescaler mapping from {in_channels} to {out_channels} channels after resizing.")
+            #通过1x1卷积映射通道
             self.channel_mapper = nn.Conv2d(in_channels, out_channels, 1, bias=bias)
 
     def forward(self, x):
@@ -110,3 +112,4 @@ class SpatialRescaler(nn.Module):
 
     def encode(self, x):
         return self(x)
+        #自动调用forward函数

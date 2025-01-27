@@ -22,7 +22,7 @@ def get_generator(generator, num_samples=0, seed=0):
         raise NotImplementedError
 
 
-class DummyGenerator:
+class DummyGenerator:  #pytorch random number generator
     def randn(self, *args, **kwargs):
         return th.randn(*args, **kwargs)
 
@@ -55,12 +55,12 @@ class DeterministicGenerator:
             self.rng_cuda = th.Generator(dev())
         self.set_seed(seed)
 
-    def get_global_size_and_indices(self, size):
-        global_size = (self.num_samples, *size[1:])
+    def get_global_size_and_indices(self, size):   #分布式 并行计算
+        global_size = (self.num_samples, *size[1:]) #计算全局生成尺寸
         indices = th.arange(
-            self.done_samples + self.rank,
-            self.done_samples + self.world_size * int(size[0]),
-            self.world_size,
+            self.done_samples + self.rank, #起始
+            self.done_samples + self.world_size * int(size[0]),  #结束
+            self.world_size,#步长
         )
         indices = th.clamp(indices, 0, self.num_samples - 1)
         assert len(indices) == size[0], f"rank={self.rank}, ws={self.world_size}, l={len(indices)}, bs={size[0]}"
@@ -69,7 +69,7 @@ class DeterministicGenerator:
     def get_generator(self, device):
         return self.rng_cpu if th.device(device).type == "cpu" else self.rng_cuda
 
-    def randn(self, *size, dtype=th.float, device="cpu"):
+    def randn(self, *size, dtype=th.float, device="cpu"):  #正态分布
         global_size, indices = self.get_global_size_and_indices(size)
         generator = self.get_generator(device)
         return th.randn(*global_size, generator=generator, dtype=dtype, device=device)[indices]
@@ -96,7 +96,7 @@ class DeterministicGenerator:
             self.rng_cuda.manual_seed(seed)
 
 
-class DeterministicIndividualGenerator:
+class DeterministicIndividualGenerator:   #单独样本确定性生成器
     """
     RNG to deterministically sample num_samples samples that does not depend on batch_size or mpi_machines
     Uses a separate rng for each sample to reduce memoery usage
@@ -155,7 +155,7 @@ class DeterministicIndividualGenerator:
                 for i in indices
             ],
             dim=0,
-        )
+        )  #逐个生成后合并
 
     def randn_like(self, tensor):
         size, dtype, device = tensor.size(), tensor.dtype, tensor.device

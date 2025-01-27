@@ -1,4 +1,4 @@
-############################################### ADM ~ CelebA 256 ###############################################
+# ############################################## ADM ~ CelebA 256 ###############################################
 # accelerate launch --num_processes 1 train_flow_latent.py --exp celeb256_f8_adm \
 #     --dataset celeba_256 --datadir ../cnf_flow/data/celeba/celeba-lmdb \
 #     --batch_size 112 --num_epoch 500 \

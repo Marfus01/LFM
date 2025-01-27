@@ -14,7 +14,7 @@ import torch
 from torch.optim import Optimizer
 
 
-class EMA(Optimizer):
+class EMA(Optimizer):  #指数移动平均 防止过拟合
     def __init__(self, opt, ema_decay):
         self.ema_decay = ema_decay
         self.apply_ema = self.ema_decay > 0.0

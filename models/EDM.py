@@ -50,7 +50,7 @@ class Linear(torch.nn.Module):
         self.bias = torch.nn.Parameter(weight_init([out_features], **init_kwargs) * init_bias) if bias else None
 
     def forward(self, x):
-        x = x @ self.weight.to(x.dtype).t()
+        x = x @ self.weight.to(x.dtype).t()  # y=WX^T +b
         if self.bias is not None:
             x = x.add_(self.bias.to(x.dtype))
         return x
